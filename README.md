@@ -5,6 +5,7 @@
 | 内容 | 路径 |
 |---|---|
 | 执行计划（期中/期末、里程碑） | `guideline.md` |
+| 官方课程指南 | `docs/course_guideline_official.md` |
 | 项目提案 | `docs/midterm_proposal_zh.md` |
 | 初步结果汇总 | `docs/midterm_results_summary_zh.md` |
 | 代码说明 | `docs/README_midterm_audit_zh.md` |
