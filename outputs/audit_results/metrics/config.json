@@ -1,0 +1,49 @@
+{
+  "root": "data/nuscenes_full",
+  "version": "v1.0-mini",
+  "scenes": [
+    "scene-0061",
+    "scene-0103",
+    "scene-1077",
+    "scene-1094"
+  ],
+  "degradations": [
+    "clean",
+    "range40",
+    "range30",
+    "range20",
+    "range10",
+    "drop25",
+    "drop50",
+    "drop75",
+    "noise005",
+    "noise01",
+    "noise02"
+  ],
+  "seeds": 3,
+  "frame_step": 1,
+  "res": 0.2,
+  "out": "outputs/audit_results",
+  "skip_map": false,
+  "skip_inject": false,
+  "skip_gallery": false,
+  "gallery_degradation": "range10",
+  "inject_frames": [
+    0,
+    10,
+    20
+  ],
+  "inject_distances": [
+    10,
+    15,
+    20,
+    25
+  ],
+  "inject_degradations": [
+    "clean",
+    "range20",
+    "range10",
+    "drop50"
+  ],
+  "inject_category": "pedestrian"
+}

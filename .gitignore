@@ -1,0 +1,21 @@
+# Raw data (downloaded separately, ~9 GB)
+data/*
+!data/*.md
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+
+# Local tooling
+.claude/
+
+# Bulky generated dataset visualizations (regenerate with utils/)
+outputs/datasets_visualize_results/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
