@@ -23,7 +23,7 @@
   "seeds": 3,
   "frame_step": 1,
   "res": 0.2,
-  "out": "outputs/audit_results",
+  "out": "outputs/eval_results",
   "skip_map": false,
   "skip_inject": false,
   "skip_gallery": false,

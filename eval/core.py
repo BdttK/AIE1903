@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Core BEV occupancy / free-space / planning utilities for the audit.
+"""Core BEV occupancy / free-space / planning utilities for the evaluation.
 
 Coordinate convention: all planning is in the current ego frame (x forward,
 y left, z up). Map sampling converts to global coordinates on demand.

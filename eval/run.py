@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""One-command runner for the midterm audit.
+"""One-command runner for the midterm evaluation.
 
 Example:
-  python -m audit.run --frame-step 1 --out outputs/audit_results
+  python -m eval.run --frame-step 1 --out outputs/eval_results
 """
 
 from __future__ import annotations
@@ -15,18 +15,18 @@ import sys
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from audit.core import Grid  # noqa: E402
-from audit.experiments import (  # noqa: E402
+from eval.core import Grid  # noqa: E402
+from eval.experiments import (  # noqa: E402
     DEFAULT_DEGRADATIONS, DEFAULT_SCENES, parse_name, run_scene,
     summarize, summarize_by_degradation,
 )
-import audit.map_audit as audit_map  # noqa: E402
-import audit.inject as audit_inject  # noqa: E402
-import audit.visualize as vis  # noqa: E402
+import eval.map_consistency as map_consistency  # noqa: E402
+import eval.inject as inject  # noqa: E402
+import eval.visualize as vis  # noqa: E402
 
 # 1. 退化扫描：4 场景 × 160 关键帧（--frame-step 1）× 11 档退化 × 3 seeds → per_frame.csv、hazards.csv、两个 summary（run.py:60-75）
 # 2. 主图：退化曲线、昼夜对比、召回-false-free 权衡、距离/类别剖面、失效画廊（run.py:78-89）
-# 3. 地图审计：4 场景的 A/B/C 差异、归因、全局持续性栅格与图（run.py:92-104）
+# 3. 地图一致性分析：4 场景的 A/B/C 差异、归因、全局持续性栅格与图（run.py:92-104）
 # 4. 危险注入：3 个帧距 × 4 档退化 × 4 个注入距离（run.py:107-132）
 
 def main():
@@ -38,7 +38,7 @@ def main():
     ap.add_argument("--seeds", type=int, default=3)       # 3
     ap.add_argument("--frame-step", type=int, default=1)  # 1
     ap.add_argument("--res", type=float, default=0.2)
-    ap.add_argument("--out", default="outputs/audit_results")  # outputs/audit_results
+    ap.add_argument("--out", default="outputs/eval_results")  # outputs/eval_results
     ap.add_argument("--skip-map", action="store_true")
     ap.add_argument("--skip-inject", action="store_true")
     ap.add_argument("--skip-gallery", action="store_true")
@@ -49,7 +49,7 @@ def main():
     ap.add_argument("--inject-degradations", nargs="+",
                     default=["clean", "range20", "range10", "drop50"])
     ap.add_argument("--inject-category", default="pedestrian",
-                    choices=list(audit_inject.ACTOR_SIZES))
+                    choices=list(inject.ACTOR_SIZES))
     args = ap.parse_args()
 
     grid = Grid(res=args.res)  # BEV 栅格坐标系定义
@@ -92,16 +92,16 @@ def main():
         vis.failure_gallery(os.path.join(met, "per_frame.csv"),
                             args.root, args.version, grid, fig, gal)
 
-    # 3. map audit
+    # 3. map consistency
     if not args.skip_map:
         map_rows = []
         for scene in args.scenes:
-            map_rows.extend(audit_map.run_scene(
+            map_rows.extend(map_consistency.run_scene(
                 scene, args.root, args.version, args.frame_step, grid, met))
             demo = min(10, 39)
-            audit_map.plot_frame(scene, args.root, args.version, demo, grid,
+            map_consistency.plot_frame(scene, args.root, args.version, demo, grid,
                                  os.path.join(fig, "map_discrepancy_%s.png" % scene))
-            audit_map.plot_persistence(
+            map_consistency.plot_persistence(
                 os.path.join(met, "map_global_%s.npz" % scene),
                 os.path.join(fig, "map_persistence_%s.png" % scene))
         pd.DataFrame(map_rows).to_csv(
@@ -121,19 +121,19 @@ def main():
                     nseed = 1 if kind in ("clean", "range") else args.seeds
                     for distance in args.inject_distances:
                         for seed in range(nseed):
-                            out, _, _, _ = audit_inject.run_case(
+                            out, _, _, _ = inject.run_case(
                                 sc, frame, name, distance, 0.0,
                                 args.inject_category, kind, param, seed, grid)
                             out.pop("_path", None)
                             inj_rows.append(out)
-            audit_inject.plot_case(
+            inject.plot_case(
                 sc, args.inject_frames[0], args.inject_degradations[-1],
                 max(args.inject_distances) - 10, args.inject_category,
                 *parse_name(args.inject_degradations[-1]), 0, grid,
                 os.path.join(fig, "injection_%s.png" % scene))
         inj = pd.DataFrame(inj_rows)
         inj.to_csv(os.path.join(met, "injection_metrics.csv"), index=False)
-        audit_inject.plot_summary(inj, os.path.join(fig, "injection_summary.png"))
+        inject.plot_summary(inj, os.path.join(fig, "injection_summary.png"))
 
     print("done:", args.out)
 

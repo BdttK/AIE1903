@@ -22,12 +22,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.visualize_nuscenes_mini_scene import (  # noqa: E402
     BOTTOM, SceneData, quat_to_rot,
 )
-from audit.core import (  # noqa: E402
+from eval.core import (  # noqa: E402
     Grid, _ann_boxes_in_ego, build_layers, degrade, global_to_ego,
     obb_overlap, rectangle_corners,
 )
-from audit.policy import scan_forward, speed_command  # noqa: E402
-from audit.experiments import parse_name  # noqa: E402
+from eval.policy import scan_forward, speed_command  # noqa: E402
+from eval.experiments import parse_name  # noqa: E402
 
 POLICIES = ["perception", "map", "degradation_aware"]
 POLICY_COLORS = {"perception": "#1f77b4", "map": "#ff7f0e",
@@ -426,7 +426,7 @@ def main():
     ap.add_argument("--dt", type=float, default=0.1)
     ap.add_argument("--max-steps", type=int, default=260)
     ap.add_argument("--fps", type=int, default=10)
-    ap.add_argument("--out", default="outputs/audit_results/demo")
+    ap.add_argument("--out", default="outputs/eval_results/demo")
     ap.add_argument("--no-video", action="store_true")
     args = ap.parse_args()
 

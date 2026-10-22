@@ -1,15 +1,15 @@
-# 期中项目 Proposal：LiDAR 退化下的安全感知与地图可靠性审计
+# 期中项目 Proposal：LiDAR 退化下的安全感知与地图可靠性评估
 
 **课程**：AIE1903 AI for Autonomous Driving · Fall 2026
 **选题**：主题 15（自选），组合主题 2、3、4、6、14
 
-> **当前进度（2026-10-21）**：proposal 完成；核心管线、实验运行器、地图审计、危险注入、可视化、动态安全监控 demo 与单元测试已实现；全量矩阵与三策略对比视频已产出，结果见 `docs/midterm_results_summary_zh.md`。
+> **当前进度（2026-10-21）**：proposal 完成；核心管线、实验运行器、地图一致性分析、危险注入、可视化、动态安全监控 demo 与单元测试已实现；全量矩阵与三策略对比视频已产出，结果见 `docs/midterm_results_summary_zh.md`。
 
 ---
 
 ## 1. 一句话
 
-在真实 nuScenes 城市驾驶数据上，建立“LiDAR 退化阶梯 → 占据/自由空间 → 安全包络感知 → 地图一致性”的审计管线，量化**哪种退化最先侵蚀规划所依赖的安全感知**，以及 HD 地图先验在何处补位、何处误导。
+在真实 nuScenes 城市驾驶数据上，建立“LiDAR 退化阶梯 → 占据/自由空间 → 安全包络感知 → 地图一致性”的评估管线，量化**哪类退化最先让安全关键的感知输出失效**（安全包络内目标漏检、false-free 上升），以及 HD 地图先验在何处补位、何处误导。
 
 **与初版的调整**：原型测试发现，真实自车路径在 3 s 内的冲突目标极少（20 帧仅 0–7 次），固定目标 A* 的碰撞率统计功效不足。因此主指标改为**安全包络内的目标召回与 false-free**，A* 与碰撞检查保留为“危险注入”控制实验和演示模块。
 
@@ -99,7 +99,7 @@
   - `degradation-aware`：用前向未知区限制速度，occupied 触发制动。
 - 指标：碰撞、首次碰撞时间、最小间距、碰撞前停车比例、最大速度。
 - 产出：三策略 4 联 MP4 + 速度/自由距离/间距对比图。
-- 定位：受控演示，不是完整规划器；用来证明“审计发现的失效可以用降级策略缓解”。
+- 定位：受控演示，不是完整规划器；用来证明“评估发现的失效可以用降级策略缓解”。
 
 ### 4.8 基线
 
@@ -162,9 +162,9 @@
 
 | Day | 日期 | 任务 | 产出 |
 |---:|---|---|---|
-| 1–2 | 10-20 ~ 10-21 | Proposal 初稿、核心管线、全量基线 | 本文件 + `audit/` |
+| 1–2 | 10-20 ~ 10-21 | Proposal 初稿、核心管线、全量基线 | 本文件 + `eval/` |
 | 3–4 | 10-22 ~ 10-23 | 指标冻结、false-positive、帧级 CI | 指标表 |
-| 5 | 10-24 | 退化曲线、失效画廊、地图审计 | 主图 |
+| 5 | 10-24 | 退化曲线、失效画廊、地图一致性分析 | 主图 |
 | 6–7 | 10-25 ~ 10-26 | DL1 幻灯片与 10 分钟讲稿 | slides |
 | 8 | 10-27 | DL1 展示 + 记录反馈 | 反馈清单 |
 | 9–10 | 10-28 ~ 10-29 | 整合反馈、proposal 4–6 页 | 提案初稿 |
@@ -185,13 +185,13 @@
 
 - 环境：`conda activate aie1903_ad`（已含 numpy/scipy/sklearn/opencv/networkx/pandas/nuscenes-devkit）。
 - 数据：nuScenes v1.0-mini 关键帧；README 写明下载与目录结构。
-- 代码：`audit/core.py`、`audit/experiments.py`、`audit/map_audit.py`、`audit/inject.py`、`audit/visualize.py`、`audit/run.py`。
+- 代码：`eval/core.py`、`eval/experiments.py`、`eval/map_consistency.py`、`eval/inject.py`、`eval/visualize.py`、`eval/run.py`。
 - 命令：
   ```bash
-  python -m audit.run --frame-step 1 --seeds 3 --out outputs/audit_results
+  python -m eval.run --frame-step 1 --seeds 3 --out outputs/eval_results
   python -m pytest tests -q
   ```
-- 产物：`outputs/audit_results/metrics/`（逐帧/汇总 CSV）与 `outputs/audit_results/figures/`（曲线、画廊、地图差异、注入演示）。
+- 产物：`outputs/eval_results/metrics/`（逐帧/汇总 CSV）与 `outputs/eval_results/figures/`（曲线、画廊、地图差异、注入演示）。
 - 随机种子固定；所有图由脚本生成。
 
 ## 12. AI 工具使用声明

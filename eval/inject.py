@@ -17,11 +17,11 @@ from matplotlib.patches import Rectangle
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.visualize_nuscenes_mini_scene import BOTTOM, SceneData  # noqa: E402
-from audit.core import (  # noqa: E402
+from eval.core import (  # noqa: E402
     Grid, astar, boxes_to_masks, build_layers, degrade, map_drivable,
     path_metrics, rectangle_corners,
 )
-from audit.experiments import DEFAULT_SCENES  # noqa: E402
+from eval.experiments import DEFAULT_SCENES  # noqa: E402
 
 ACTOR_SIZES = {
     "pedestrian": (0.6, 0.6, 1.7),
@@ -194,10 +194,10 @@ def main():
     ap.add_argument("--category", default="pedestrian", choices=list(ACTOR_SIZES))
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--res", type=float, default=0.2)
-    ap.add_argument("--out", default="outputs/audit_results")
+    ap.add_argument("--out", default="outputs/eval_results")
     args = ap.parse_args()
 
-    from audit.experiments import parse_name
+    from eval.experiments import parse_name
     grid = Grid(res=args.res, x_min=-30, x_max=35, y_min=-20, y_max=20)
     fig_dir = os.path.join(args.out, "figures")
     met_dir = os.path.join(args.out, "metrics")

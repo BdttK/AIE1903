@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figures for the degradation audit: curves, profiles, failure gallery."""
+"""Figures for the degradation evaluation: curves, profiles, failure gallery."""
 
 from __future__ import annotations
 
@@ -18,11 +18,11 @@ from scipy import ndimage
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.visualize_nuscenes_mini_scene import BOTTOM, SceneData  # noqa: E402
-from audit.core import (  # noqa: E402
+from eval.core import (  # noqa: E402
     Grid, boxes_to_masks, build_hazard_set, build_layers, corridor_mask,
     degrade, future_ego_path, map_drivable,
 )
-from audit.experiments import DEFAULT_DEGRADATIONS, parse_name  # noqa: E402
+from eval.experiments import DEFAULT_DEGRADATIONS, parse_name  # noqa: E402
 
 PALETTE = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
            "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
@@ -238,8 +238,8 @@ def failure_gallery(per_frame_csv, root, version, grid, out_dir, degradation="ra
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--metrics", default="outputs/audit_results/metrics")
-    ap.add_argument("--figures", default="outputs/audit_results/figures")
+    ap.add_argument("--metrics", default="outputs/eval_results/metrics")
+    ap.add_argument("--figures", default="outputs/eval_results/figures")
     ap.add_argument("--root", default="data/nuscenes_full")
     ap.add_argument("--version", default="v1.0-mini")
     ap.add_argument("--res", type=float, default=0.2)

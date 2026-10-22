@@ -14,7 +14,7 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.visualize_nuscenes_mini_scene import SceneData  # noqa: E402
-from audit.core import (  # noqa: E402
+from eval.core import (  # noqa: E402
     Grid, boxes_to_masks, build_hazard_set, build_layers, degrade,
     hazard_recall, map_drivable, perception_metrics,
 )
@@ -201,7 +201,7 @@ def main():
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--frame-step", type=int, default=1)
     ap.add_argument("--res", type=float, default=0.2)
-    ap.add_argument("--out", default="outputs/audit_results")
+    ap.add_argument("--out", default="outputs/eval_results")
     ap.add_argument("--list-degradations", action="store_true")
     args = ap.parse_args()
     if args.list_degradations:

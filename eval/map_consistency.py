@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Map prior vs live perception discrepancy audit (A/B/C classes)."""
+"""Map prior vs live perception discrepancy analysis (A/B/C classes)."""
 
 from __future__ import annotations
 
@@ -18,10 +18,10 @@ from matplotlib.patches import Polygon
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.visualize_nuscenes_mini_scene import BOTTOM, SceneData  # noqa: E402
-from audit.core import (  # noqa: E402
+from eval.core import (  # noqa: E402
     Grid, boxes_to_masks, build_layers, future_ego_path, map_drivable,
 )
-from audit.experiments import DEFAULT_SCENES, SCENE_META  # noqa: E402
+from eval.experiments import DEFAULT_SCENES, SCENE_META  # noqa: E402
 
 
 def _path_cells(grid, path, step=0.25):
@@ -124,7 +124,7 @@ class GlobalDiscrepancy:
 
 
 def _global_centers(sc, token, grid):
-    from audit.core import ego_to_global
+    from eval.core import ego_to_global
     X, Y = grid.centers()
     g = ego_to_global(np.column_stack([X.ravel(), Y.ravel()]), sc.ego_pose(token))
     return g[:, 0].reshape(grid.shape), g[:, 1].reshape(grid.shape)
@@ -269,7 +269,7 @@ def main():
     ap.add_argument("--scenes", nargs="+", default=DEFAULT_SCENES)
     ap.add_argument("--frame-step", type=int, default=1)
     ap.add_argument("--res", type=float, default=0.2)
-    ap.add_argument("--out", default="outputs/audit_results")
+    ap.add_argument("--out", default="outputs/eval_results")
     ap.add_argument("--demo-frame", type=int, default=10)
     args = ap.parse_args()
     grid = Grid(res=args.res)

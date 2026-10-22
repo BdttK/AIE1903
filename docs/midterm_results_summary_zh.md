@@ -6,7 +6,7 @@
 - 退化：clean、range40/30/20/10、drop25/50/75、noise005/01/02，共 11 档。
 - 检测判据：目标足迹内至少 1 格且覆盖 ≥5%（避免大目标被 10% 阈值系统性低估）。
 - 规模：3,680 条逐帧记录、27,002 条目标级记录、288 组危险注入。
-- 产物：`outputs/audit_results/metrics/`、`outputs/audit_results/figures/`。
+- 产物：`outputs/eval_results/metrics/`、`outputs/eval_results/figures/`。
 
 ## 1. 包络召回（主指标）
 
@@ -41,7 +41,7 @@
 - 距离截断让 false-free **下降**：远处障碍变成 unknown，不是 free——系统“变安静但变瞎”。
 - 自由空间 IoU 在所有退化下几乎不变，**不能单独作为安全指标**；必须与包络召回、unknown 比例并列。
 
-## 3. 地图-感知差异审计
+## 3. 地图-感知差异分析
 
 | 场景 | 时段 | A 均值 | B 均值 | A 可归因 | 自车暴露 |
 |---|---|---:|---:|---:|---:|
@@ -84,7 +84,7 @@
 - map-only 完全不看实时目标，直接穿过。
 - degradation-aware 用未知区限制速度（上限 3.75 m/s），提前减速并在行人通过前停住，再继续行驶。
 
-产物：`outputs/audit_results/demo/` 下三段 4 联 MP4、`comparison_*.png`、`metrics_*.csv`。
+产物：`outputs/eval_results/demo/` 下三段 4 联 MP4、`comparison_*.png`、`metrics_*.csv`。
 
 > 说明：这是受控演示（恒速目标、虚拟行人、sweep 级回放），不是完整规划器；结论是“退化感知 + 降级策略可避免 false-safe”，不证明真实道路安全性。
 
@@ -108,4 +108,4 @@
 - 真实关键帧冲突稀疏，主统计用包络指标；碰撞结论来自注入实验。
 - 噪声目前只表现为覆盖率略升，需补“occupied 假阳性率”才能完整评价。
 - 地图语义为二值可行驶区，B 类已限制路缘 3 m，但仍含路侧停车/出入口。
-- 单帧静态审计；final 可加 3 s 动态预测与多模态轨迹。
+- 单帧静态评估；final 可加 3 s 动态预测与多模态轨迹。

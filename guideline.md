@@ -19,7 +19,7 @@
 |---|---|---|
 | 10-20 ~ 10-21 | Proposal 初稿、核心管线、全量基线 | proposal + 代码 |
 | 10-22 ~ 10-23 | 指标冻结、false-positive occupied、帧级 CI | 指标表 |
-| 10-24 ~ 10-25 | 退化曲线、失效画廊、地图审计、demo 润色 | 主图 + 视频 |
+| 10-24 ~ 10-25 | 退化曲线、失效画廊、地图一致性分析、demo 润色 | 主图 + 视频 |
 | 10-26 | DL1 幻灯片与 10 分钟讲稿 | slides |
 | 10-27 | DL1 展示 + 记录反馈 | 反馈清单 |
 | 10-28 ~ 10-30 | 整合反馈、proposal 4–6 页、复现检查 | 提案文档 |
@@ -39,7 +39,7 @@
 
 ## 多阶段实现
 
-- **M0（已完成）**：核心管线、退化矩阵、地图审计、危险注入、可视化、动态安全监控 demo、测试。
+- **M0（已完成）**：核心管线、退化矩阵、地图一致性分析、危险注入、可视化、动态安全监控 demo、测试。
 - **M1（期中）**：指标冻结、false-positive、帧级 CI、demo 润色、主图与报告。
 - **M2（期末）**：动态推演、预测基线、全量帧、消融、矢量地图。
 - **M3（提交）**：代码包、8–12 页报告、10 分钟展示。
@@ -48,7 +48,7 @@
 
 ```
 my_projects/
-├── audit/          # 核心模块（core/experiments/map_audit/inject/visualize/policy/demo/run）
+├── eval/          # 核心模块（core/experiments/map_consistency/inject/visualize/policy/demo/run）
 ├── tests/          # 单元测试
 ├── utils/          # 脚手架（nuScenes 可视化、地图栅格化）
 ├── docs/           # proposal、结果汇总、代码说明
@@ -59,6 +59,6 @@ my_projects/
 
 ## 风险
 
-- 期中时间紧：DL1 前只保证主曲线 + 地图审计 + 注入演示。
+- 期中时间紧：DL1 前只保证主曲线 + 地图一致性分析 + 注入演示。
 - 噪声指标反直觉：补 false-positive occupied。
 - 期末扩展过多：优先动态推演与全量帧。

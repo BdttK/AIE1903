@@ -1,4 +1,4 @@
-# 期中项目代码说明（LiDAR 退化安全感知审计）
+# 期中项目代码说明（LiDAR 退化安全感知评估）
 
 ## 环境与数据
 
@@ -11,19 +11,19 @@ conda activate aie1903_ad
 
 ```bash
 # 全量（4 场景、160 关键帧、11 档退化、3 seeds）
-python -m audit.run --frame-step 1 --seeds 3 --out outputs/audit_results
+python -m eval.run --frame-step 1 --seeds 3 --out outputs/eval_results
 
 # 快速冒烟（约 1 分钟）
-python -m audit.run --frame-step 8 \
+python -m eval.run --frame-step 8 \
   --degradations clean range20 range10 drop50 --seeds 2 \
   --inject-frames 0 --inject-distances 10 20 \
   --inject-degradations clean range20 range10 \
-  --out /tmp/audit_quick
+  --out /tmp/eval_quick
 
 # 动态 demo（scene-0103, range10, 虚拟行人）
-python -m audit.demo --scene scene-0103 --degradation range10 \
+python -m eval.demo --scene scene-0103 --degradation range10 \
   --start-distance 29 --inject-distance 12 --target-speed 8 \
-  --max-steps 140 --out outputs/audit_results/demo
+  --max-steps 140 --out outputs/eval_results/demo
 
 # 单元测试
 python -m pytest tests -q
@@ -33,17 +33,17 @@ python -m pytest tests -q
 
 | 文件 | 作用 |
 |---|---|
-| `audit/core.py` | 网格、坐标变换、占据/自由空间、真值栅格化、退化、包络指标、A*、OBB |
-| `audit/experiments.py` | 退化矩阵与逐帧指标、汇总 CSV |
-| `audit/map_audit.py` | 地图-感知差异 A/B/C、归因、全局持续性图 |
-| `audit/inject.py` | 虚拟目标注入 + 感知/地图/Oracle 重规划对比 |
-| `audit/visualize.py` | 退化曲线、昼夜对比、距离/类别剖面、失效画廊 |
-| `audit/policy.py` | 前向走廊扫描、perception/map/degradation-aware 速度策略 |
-| `audit/demo.py` | 动态回放、虚拟行人注入、三策略 4 联视频 |
-| `audit/run.py` | 一条命令跑全流程 |
-| `audit/smoke.py` | 单帧四联图冒烟测试（开发用） |
+| `eval/core.py` | 网格、坐标变换、占据/自由空间、真值栅格化、退化、包络指标、A*、OBB |
+| `eval/experiments.py` | 退化矩阵与逐帧指标、汇总 CSV |
+| `eval/map_consistency.py` | 地图-感知差异 A/B/C、归因、全局持续性图 |
+| `eval/inject.py` | 虚拟目标注入 + 感知/地图/Oracle 重规划对比 |
+| `eval/visualize.py` | 退化曲线、昼夜对比、距离/类别剖面、失效画廊 |
+| `eval/policy.py` | 前向走廊扫描、perception/map/degradation-aware 速度策略 |
+| `eval/demo.py` | 动态回放、虚拟行人注入、三策略 4 联视频 |
+| `eval/run.py` | 一条命令跑全流程 |
+| `eval/smoke.py` | 单帧四联图冒烟测试（开发用） |
 
-## 输出（`outputs/audit_results/`）
+## 输出（`outputs/eval_results/`）
 
 | 路径 | 内容 |
 |---|---|
@@ -81,4 +81,4 @@ python -m pytest tests -q
 - 真实关键帧的路径冲突稀疏，主统计用包络指标；碰撞结论仅来自明确标注的注入实验。
 - 自由空间用角度可见性剖面，稀疏点云会产生 unknown 楔形。
 - 地图“可行驶”为二值语义 PNG，未区分人行道/停车区；B 类已限制在路缘 3 m 内。
-- 单帧静态审计，不含动态预测误差；final 可加 3 s 动态推演。
+- 单帧静态评估，不含动态预测误差；final 可加 3 s 动态推演。

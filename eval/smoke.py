@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Single-frame smoke test for the perception-degradation audit."""
+"""Single-frame smoke test for the perception-degradation evaluation."""
 
 import argparse
 import os
@@ -14,7 +14,7 @@ from scipy import ndimage
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.visualize_nuscenes_mini_scene import BOTTOM, SceneData
-from audit.core import (
+from eval.core import (
     Grid, astar, boxes_to_masks, build_layers, ego_to_global, goal_in_ego,
     map_drivable, path_metrics, perception_metrics,
 )
@@ -67,7 +67,7 @@ def main():
     token = sc.sample_tokens[args.frame]
     points, points_ego = sc.lidar_ego(token)
     if args.degradation != "clean":
-        from audit.core import degrade
+        from eval.core import degrade
         points_ego = degrade(points_ego, args.degradation, args.param, np.random.default_rng(0))
 
     grid = Grid(res=args.res)
@@ -143,7 +143,7 @@ def main():
             results["perception"]["collision"], results["map"]["collision"]),
         fontsize=10)
     fig.tight_layout()
-    out_dir = os.path.join("outputs", "audit_smoke")
+    out_dir = os.path.join("outputs", "eval_smoke")
     os.makedirs(out_dir, exist_ok=True)
     out = os.path.join(out_dir, "%s_f%03d_%s.png" % (args.scene, args.frame, args.degradation))
     fig.savefig(out, dpi=140)

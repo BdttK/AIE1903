@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unit tests for the audit core (data-free)."""
+"""Unit tests for the evaluation core (data-free)."""
 
 import os
 import sys
@@ -7,7 +7,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from audit.core import (  # noqa: E402
+from eval.core import (  # noqa: E402
     Grid, astar, build_layers, degrade, hazard_recall, obb_overlap,
     rectangle_corners,
 )
