@@ -12,13 +12,14 @@ __pycache__/
 # Local tooling
 .claude/
 
-# Bulky generated dataset visualizations (regenerate with utils/)
-outputs/datasets_visualize_results/
-
 # OS / editor
 .DS_Store
 Thumbs.db
 .vscode/
 
+# Generated results (regenerate with utils/ and eval scripts)
+outputs/
+
+# Local notes; keep the proposal source
 docs/*
-outputs/*
+!docs/project_proposal_en.tex
