@@ -40,16 +40,18 @@
 ## 多阶段实现
 
 - **M0（已完成）**：核心管线、退化矩阵、地图一致性分析、危险注入、可视化、动态安全监控 demo、测试。
-- **M1（期中）**：指标冻结、false-positive、帧级 CI、demo 润色、主图与报告。
-- **M2（期末）**：动态推演、预测基线、全量帧、消融、矢量地图。
+- **M1（期中）**：指标冻结、false-positive、帧级 CI、demo 润色、主图与报告；闭环全栈（世界系三层、IMM、Frenet/A*、MPPI/纯跟踪、RSS/MRM、2×2 消融、三段 BEV 视频）已实现。
+- **M2（期末）**：概率占据预测与 CVaR、Hybrid A*、全局路由 + 行为状态机、完整轮胎模型、官方预测基线、10 场景全量。
 - **M3（提交）**：代码包、8–12 页报告、10 分钟展示。
 
 ## 目录结构
 
 ```
 my_projects/
-├── eval/          # 核心模块（core/experiments/map_consistency/inject/visualize/policy/demo/run）
-├── tests/          # 单元测试
+├── eval/          # 核心模块（core/experiments/map_consistency/inject/visualize/policy/
+│                  #   demo/run/smoke + sim/world/predict/planning/control/safety/
+│                  #   closed_loop/visualize_loop）
+├── tests/          # 单元测试（core + closed loop）
 ├── utils/          # 脚手架（nuScenes 可视化、地图栅格化）
 ├── docs/           # proposal、结果汇总、代码说明
 ├── data/           # 只读数据

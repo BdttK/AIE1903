@@ -69,12 +69,12 @@ def box_corners(translation, size, rotation):
 class SceneData:
     def __init__(self, root, version, scene_name):
         self.root = root
-        self.meta = os.path.join(root, version)
-        scenes = load_json(self.meta, "scene")
+        self.meta = os.path.join(root, version) # data/nuscenes_full/v1.0-mini
+        scenes = load_json(self.meta, "scene")  # data/nuscenes_full/v1.0-mini/scene.json 的内容
         names = [s["name"] for s in scenes]
         if scene_name is None:
             scene_name = names[0]
-        scene = next((s for s in scenes if s["name"] == scene_name), None)
+        scene = next((s for s in scenes if s["name"] == scene_name), None)  # 取出scene.json中对应scene的那个字典
         if scene is None:
             raise SystemExit("Unknown scene %r. Available: %s" % (scene_name, names))
         self.scene = scene
@@ -88,6 +88,7 @@ class SceneData:
         self.categories = {c["token"]: c["name"] for c in load_json(self.meta, "category")}
         self.instances = {i["token"]: i for i in load_json(self.meta, "instance")}
 
+        # 取出这个scene中所有的关键帧的token。遍历的是sample.json
         self.sample_tokens = []
         token = scene["first_sample_token"]
         while token:
@@ -95,8 +96,9 @@ class SceneData:
             token = self.samples[token]["next"]
         sample_set = set(self.sample_tokens)
 
-        self.scene_sample_data = []
-        self.sd_by_sample = defaultdict(dict)
+        # 取出这个scene中所有的关键帧+sweep的token。便利的硕士sample_data.json，全部帧。
+        self.scene_sample_data = []            # 保留全部记录，包括 sweep。
+        self.sd_by_sample = defaultdict(dict)  # 只放关键帧
         for rec in load_json(self.meta, "sample_data"):
             if rec["sample_token"] not in sample_set:
                 continue
@@ -105,7 +107,32 @@ class SceneData:
                 channel = rec["filename"].split("/")[1]
                 self.sd_by_sample[rec["sample_token"]][channel] = rec
 
-        self.ann_by_sample = defaultdict(list)
+        # 建立“每一帧 → 该帧所有 3D 标注框”的索引，顺便把类别名和 8 个角点预先算好。
+        # nuScenes 把三件事分开了：
+        # ┌──────────────────┬─────────────────────────┬───────────────────────────────────────────┐
+        # │        表        │        一行代表         │                 关键字段                  │
+        # ├──────────────────┼─────────────────────────┼───────────────────────────────────────────┤
+        # │ sample_annotatio │ 某一帧里的一个框        │ instance_token、translation、size、rotati │
+        # │ n                │                         │ on                                        │
+        # ├──────────────────┼─────────────────────────┼───────────────────────────────────────────┤
+        # │ instance         │ 一个被跟踪的对象（跨帧  │ category_token、nbr_annotations           │
+        # │                  │ ）                      │                                           │
+        # ├──────────────────┼─────────────────────────┼───────────────────────────────────────────┤
+        # │ category         │ 类别体系                │ name，如 human.pedestrian.adult           │
+        # └──────────────────┴─────────────────────────┴───────────────────────────────────────────┘
+        # 三个坐标系
+        # ┌───────────────┬──────────────────────┬──────────────┬────────────────────────────────┐
+        # │    坐标系     │         原点         │ 是否随车移动 │             谁在用             │
+        # ├───────────────┼──────────────────────┼──────────────┼────────────────────────────────┤
+        # │               │                      │              │ 标注框                         │
+        # │ 全局 / 世界系 │ 地图的固定原点       │ 否           │ translation/rotation、自车位姿 │
+        # │               │                      │              │  ego_pose、地图 PNG            │
+        # ├───────────────┼──────────────────────┼──────────────┼────────────────────────────────┤
+        # │ 自车系（ego） │ 自车（后轴中心附近） │ 是           │ 项目里所有感知指标、栅格、规划 │
+        # ├───────────────┼──────────────────────┼──────────────┼────────────────────────────────┤
+        # │ 传感器系      │ LiDAR/相机安装位置   │ 是           │ 原始点云 .pcd.bin              │
+        # └───────────────┴──────────────────────┴──────────────┴────────────────────────────────┘
+        self.ann_by_sample = defaultdict(list)    # 帧token -> [该帧的标注框, ...]
         for ann in load_json(self.meta, "sample_annotation"):
             if ann["sample_token"] not in sample_set:
                 continue
@@ -119,30 +146,54 @@ class SceneData:
                 self.map_file = m["filename"]
                 break
 
-    # ---------- geometry ----------
+    #四个坐标系
+    # ┌─────────────────────┬─────────────────────────────────────────┬──────────────────────────┐
+    # │       坐标系        │                原点/朝向                │           谁用           │
+    # ├─────────────────────┼─────────────────────────────────────────┼──────────────────────────┤
+    # │ LiDAR 传感器系      │ LiDAR 本体，x 前、y 左、z 上            │ 刚读进来的点云           │
+    # ├─────────────────────┼─────────────────────────────────────────┼──────────────────────────┤
+    # │ 自车系（ego）       │ 自车（nuScenes 约定在后轴中心），x      │ 所有感知指标、规划、包络 │
+    # │                     │ 前、y 左、z 上                          │                          │
+    # ├─────────────────────┼─────────────────────────────────────────┼──────────────────────────┤
+    # │ 全局系（global）    │ 城市地图坐标，单位米                    │ 地图查表、跨帧轨迹       │
+    # ├─────────────────────┼─────────────────────────────────────────┼──────────────────────────┤
+    # │ 地图像素系（image） │ PNG 左上角，col 向右、row 向下          │ 取地图可行驶区           │
+    # └─────────────────────┴─────────────────────────────────────────┴──────────────────────────┘
+
+    # ---------- geometry ---------- （主要三个方法）
     def lidar_ego(self, sample_token):
+        # 把一帧 LiDAR 原始点云从“传感器坐标系”转换到“自车坐标系”，同时把原始数据一并返回。
         rec = self.sd_by_sample[sample_token]["LIDAR_TOP"]
         path = os.path.join(self.root, rec["filename"])
-        points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)
-        cal = self.calib[rec["calibrated_sensor_token"]]
-        rot = quat_to_rot(cal["rotation"])
+        points = np.fromfile(path, dtype=np.float32).reshape(-1, 5)  # fromfile 读成一维数组，reshape(-1, 5) 还原成 N×5 的点表：[x, y, z, 强度(intensity), 线束编号(ring)]，N为点的数量。
+        cal = self.calib[rec["calibrated_sensor_token"]]  # cal 里存的是雷达相对于车中心的“外参（Extrinsic）
+        rot = quat_to_rot(cal["rotation"]) # rot 是雷达的安装角度（四元数），告诉你雷达有没有稍微歪一点。quat_to_rot 把四元数转成了3×3 的旋转矩阵。
         trans = np.asarray(cal["translation"])
         return points, points[:, :3] @ rot.T + trans
 
     def boxes_ego(self, sample_token):
+        # 周围的障碍物相对于我（自车）的相对位置
         rec = self.sd_by_sample[sample_token]["LIDAR_TOP"]
         pose = self.ego_poses[rec["ego_pose_token"]]
         rot = quat_to_rot(pose["rotation"])
         trans = np.asarray(pose["translation"])
         out = []
         for ann in self.ann_by_sample[sample_token]:
-            corners = (ann["_corners"] - trans) @ rot
+            corners = (ann["_corners"] - trans) @ rot # 全局坐标到相对于自车的，逆过程。
             out.append((corners, ann["_category"]))
         return out
 
     def ego_pose(self, sample_token):
+        # 查“我（自车）在全局世界地图上的绝对位置
         rec = self.sd_by_sample[sample_token]["CAM_FRONT"]
         return self.ego_poses[rec["ego_pose_token"]]
+
+
+
+# ——————————————————————————————————————————————————————————————————————————
+
+
+
 
     def camera_segments(self, sample_token, channel):
         rec = self.sd_by_sample[sample_token][channel]

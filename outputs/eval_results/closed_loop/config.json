@@ -1,0 +1,9 @@
+{
+  "max_seconds": 20.0,
+  "plan_every": 2,
+  "dt": 0.1,
+  "goal_margin": 3.0,
+  "seed": 0,
+  "capture": false,
+  "safety": "aware"
+}

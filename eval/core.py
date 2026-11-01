@@ -82,9 +82,10 @@ def goal_in_ego(sc, token, horizon_m=25.0):
 
 
 def obstacle_mask(points, grid, z_min=0.25, z_max=12.0, min_r=2.0):
+    # 先按高度和距离筛点，再把剩下的点“盖章”到 BEV 栅格上，得到占据掩码。
     r = np.hypot(points[:, 0], points[:, 1])
-    m = (points[:, 2] > z_min) & (points[:, 2] < z_max) & (r > min_r)
-    row, col = grid.cell_of(points[m, :2])
+    m = (points[:, 2] > z_min) & (points[:, 2] < z_max) & (r > min_r) # N维，True/False
+    row, col = grid.cell_of(points[m, :2])  # 把筛选后点即真正的障碍物(x, y) 换算成栅格的行列下标。
     ok = grid.inside(row, col)
     mask = np.zeros(grid.shape, dtype=bool)
     mask[row[ok], col[ok]] = True
@@ -93,6 +94,8 @@ def obstacle_mask(points, grid, z_min=0.25, z_max=12.0, min_r=2.0):
 
 def free_space(points, grid, obs_points, n_bins=1440, range_pad=None):
     """Angular visibility profile: free up to the nearest obstacle per bearing."""
+    # points:[N,3];Grid实例;[M,3]障碍物的点;(皆自车系，非全局系)
+    
     ny, nx = grid.shape
     xy = points[:, :2]
     r = np.hypot(xy[:, 0], xy[:, 1])
@@ -117,7 +120,7 @@ def free_space(points, grid, obs_points, n_bins=1440, range_pad=None):
     R = np.hypot(X, Y)
     T = np.arctan2(Y, X) % (2 * np.pi)
     cb = np.minimum((T / (2 * np.pi) * n_bins).astype(int), n_bins - 1)
-    return R <= limit[cb]
+    return R <= limit[cb]  # （500，500），Trus/False，是否为障碍物。
 
 
 def boxes_to_masks(boxes_ego, grid, inflate=0.0):
@@ -141,6 +144,8 @@ def boxes_to_masks(boxes_ego, grid, inflate=0.0):
 
 
 def map_drivable(sc, token, grid, factor=5, thresh=127, pose=None):
+    # 把 HD 地图按自车当前位姿投影到 BEV 栅格上，回答“每个栅格位置在地图里是不是可行驶
+    # 这是地图先验，可能过期。
     arr, x_max, y_max = load_map(os.path.join(sc.root, sc.map_file), factor)
     scale = MAP_RES * factor
     X, Y = grid.centers()
@@ -162,7 +167,7 @@ def degrade(points, kind, param, rng):
         return points[r <= float(param)]
     if kind == "drop":
         return points[rng.random(len(points)) >= float(param)]
-    if kind == "noise":
+    if kind == "noise": # 变半径
         out = points.copy()
         xy = out[:, :2]
         r = np.hypot(xy[:, 0], xy[:, 1])
@@ -177,8 +182,10 @@ def degrade(points, kind, param, rng):
     raise ValueError(kind)
 
 
+# main
 def build_layers(points, grid, z_min=0.25, n_bins=1440,
                  block_z_max=2.5, min_block_r=2.5, min_obstacle_r=2.0):
+    # 整条评估线的感知→栅格转换点。一帧点云进入，四张布尔图dict出。
     occ, _ = obstacle_mask(points, grid, z_min=z_min, min_r=min_obstacle_r)
     occ_low, _ = obstacle_mask(points, grid, z_min=z_min, z_max=block_z_max,
                                min_r=min_obstacle_r)
@@ -190,6 +197,15 @@ def build_layers(points, grid, z_min=0.25, n_bins=1440,
     unknown = ~free & ~occ
     return {"free": free, "occupied": occ, "occupied_low": occ_low,
             "unknown": unknown}
+
+    # 结果四层里 free/occupied/unknown 严格互斥、并集铺满全图，occupied_low ⊆ occupied 是额外的一个子集。
+    # 输出
+    # {
+    #   "free":         bool (500, 500),
+    #   "occupied":     bool (500, 500),
+    #   "occupied_low": bool (500, 500),
+    #   "unknown":      bool (500, 500),
+    # }
 
 
 def _nearest_free(blocked, cell):
