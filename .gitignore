@@ -19,3 +19,6 @@ outputs/datasets_visualize_results/
 .DS_Store
 Thumbs.db
 .vscode/
+
+docs/*
+outputs/*
